@@ -32,7 +32,14 @@ resources:
           Statement:
             - Sid: PublicReadGetObject
               Effect: Allow
-              Principal: '*'
+              Principal:
+                AWS:
+                  !Join
+                    - ''
+                    - - 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity '
+                      - ${ssm:vishoai}
+                # "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E1GZESU8DIIDT8"
+              # '*'
                 # CanonicalUser:
                 #   Fn::GetAtt: [CloudFrontOAI, S3CanonicalUserId]
               Action:
@@ -47,10 +54,16 @@ resources:
               Id: WebApp
               S3OriginConfig:
                 OriginAccessIdentity:
-                  !Join [
-                    "",
-                    ["origin-access-identity/cloudfront/", !Ref CloudFrontOAI]
-                  ]
+                  !Join
+                    - ''
+                    - - 'origin-access-identity/cloudfront/'
+                      - ${ssm:vishoai}
+                  # !Join [
+                  #   "",
+                  #   # E1GZESU8DIIDT8
+                  #   # ["origin-access-identity/cloudfront/", !Ref CloudFrontOAI]
+                  #   ["origin-access-identity/cloudfront/", ${ssm:vishoai}]
+                  # ]
           Enabled: "true"
           DefaultRootObject: index.html
           CustomErrorResponses:
@@ -78,4 +91,18 @@ resources:
       Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
       Properties:
         CloudFrontOriginAccessIdentityConfig:
-          Comment: "access-identity-passport-front.s3.amazonaws.com"
+          Comment: "oaiexample1.s3.amazonaws.com"
+    myAppSSMParameterName:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: vishoai
+        Type: String
+        Value: 
+          Ref: CloudFrontOAI
+
+  Outputs:
+  # CloudFrontOAI
+    CloudFrontOAI:
+      Value: 
+        Ref: CloudFrontOAI
+
